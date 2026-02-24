@@ -47,18 +47,7 @@ input[type='file'] { display: none; }
 .file-row-remove { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.25rem; border-radius: 4px; display: flex; align-items: center; transition: color 0.15s; flex-shrink: 0; }
 .file-row-remove:hover { color: var(--error); }
 
-/* Open Button */
 .open-btn { width: 100%; margin-top: 0.9rem; padding: 0.72rem; background: var(--accent); border: none; border-radius: 8px; color: #fff; font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: opacity 0.2s; }
 .open-btn:hover { opacity: 0.82; }
-
-/* Viewer */
-.viewer-shell { width: 100%; max-width: 1100px; animation: fadeIn 0.25s ease; }
-.viewer-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; padding: 0 0.2rem; }
-.viewer-topbar-left { display: flex; align-items: center; gap: 0.55rem; }
-.viewer-filename { font-size: 0.82rem; font-weight: 500; color: var(--text-primary); }
-.viewer-ext { font-size: 0.62rem; padding: 0.13rem 0.45rem; border-radius: 4px; border: 1px solid var(--border); color: var(--text-secondary); background: var(--surface); text-transform: uppercase; }
-.viewer-close { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); font-family: 'Inter', sans-serif; font-size: 0.75rem; cursor: pointer; padding: 0.32rem 0.7rem; display: flex; align-items: center; gap: 0.3rem; transition: all 0.15s; }
-.viewer-close:hover { border-color: var(--error); color: var(--error); }
-.viewer-frame { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface); }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
