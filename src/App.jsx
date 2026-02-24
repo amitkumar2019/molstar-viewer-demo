@@ -1,9 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import MolstarViewer from "./components/MolstarViewer";
 import "./App.css";
-import 'react-toastify/dist/ReactToastify.css';
-
-
+import "react-toastify/dist/ReactToastify.css";
 
 function formatBytes(bytes) {
   if (bytes === 0) return "0 B";
@@ -15,7 +13,6 @@ function formatBytes(bytes) {
 
 export default function App() {
   const [uploadedFile, setUploadedFile] = useState(null);
-  const [saveEnabled, setSaveEnabled] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [showViewer, setShowViewer] = useState(false);
   const fileInputRef = useRef(null);
@@ -156,10 +153,7 @@ export default function App() {
           )}
         </div>
       ) : (
-        <MolstarViewer
-          uploadedFile={uploadedFile}
-          handleSaveButton={(enabled) => setSaveEnabled(enabled)}
-        />
+        <MolstarViewer uploadedFile={uploadedFile} />
       )}
 
       <input
