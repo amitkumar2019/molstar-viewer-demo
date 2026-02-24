@@ -5,17 +5,18 @@ import { DefaultPluginSpec } from "molstar/lib/mol-plugin/spec";
 import "molstar/lib/mol-plugin-ui/skin/light.scss";
 import "./MolstarViewer.css";
 import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-export default function MolstarViewer({ uploadedFile, handleSaveButton }) {
+export default function MolstarViewer({ uploadedFile }) {
   const viewerRef = useRef(null);
   const pluginRef = useRef(null);
   const [saveEnabled, setSaveEnabled] = useState(false);
   const [resetEnabled, setResetEnabled] = useState(false);
-
-  useEffect(() => handleSaveButton(saveEnabled), [saveEnabled]);
+  const lastSavedSnapshotRef = useRef(null);
 
   useEffect(() => {
     if (!uploadedFile) return;
+
     (async () => {
       pluginRef.current = await createPluginUI({
         target: viewerRef.current,
@@ -25,41 +26,45 @@ export default function MolstarViewer({ uploadedFile, handleSaveButton }) {
 
       const molx = localStorage.getItem("molx_session");
       if (molx) {
-        await pluginRef.current.state.setSnapshot(JSON.parse(molx));
+        const snapshot = JSON.parse(molx);
+        await pluginRef.current.state.setSnapshot(snapshot);
+        lastSavedSnapshotRef.current = snapshot;
         setResetEnabled(true);
         setSaveEnabled(false);
-        return;
+      } else {
+        const text = await uploadedFile.text();
+        const data = await pluginRef.current.builders.data.rawData({
+          data: text,
+          label: uploadedFile.name,
+        });
+        const format = uploadedFile.name.endsWith(".cif") ? "mmcif" : "pdb";
+        const trajectory =
+          await pluginRef.current.builders.structure.parseTrajectory(
+            data,
+            format,
+          );
+        await pluginRef.current.builders.structure.hierarchy.applyPreset(
+          trajectory,
+          "default",
+        );
       }
 
-      const text = await uploadedFile.text();
-      const data = await pluginRef.current.builders.data.rawData({
-        data: text,
-        label: uploadedFile.name,
-      });
-      const format = uploadedFile.name.endsWith(".cif") ? "mmcif" : "pdb";
-      const trajectory =
-        await pluginRef.current.builders.structure.parseTrajectory(
-          data,
-          format,
-        );
-      await pluginRef.current.builders.structure.hierarchy.applyPreset(
-        trajectory,
-        "default",
+      pluginRef.current.state.events.cell.stateUpdated.subscribe(
+        async (update) => {
+          const cell = update.cell;
+          if (!cell || !cell.obj) return;
+
+          const type = cell.obj?.type?.name || "";
+          if (
+            type === "Canvas3D" ||
+            type === "Structure" ||
+            type === "Representation" ||
+            type === "Theme"
+          ) {
+            setSaveEnabled(true);
+          }
+        },
       );
-
-      pluginRef.current.state.events.cell.stateUpdated.subscribe((update) => {
-        const cell = update.cell;
-        if (!cell || !cell.obj) return;
-
-        const type = cell.obj?.type?.name || "";
-        if (
-          type === "Canvas3D" ||
-          type === "Structure" ||
-          type === "Representation"
-        ) {
-          setSaveEnabled(true);
-        }
-      });
     })();
 
     return () => pluginRef.current?.dispose();
@@ -68,6 +73,8 @@ export default function MolstarViewer({ uploadedFile, handleSaveButton }) {
   const saveSession = async () => {
     const snapshot = await pluginRef.current.state.getSnapshot();
     localStorage.setItem("molx_session", JSON.stringify(snapshot));
+    lastSavedSnapshotRef.current = snapshot;
+    setSaveEnabled(false);
     setResetEnabled(true);
     toast.success("View saved successfully.");
     toast.info(
@@ -77,6 +84,8 @@ export default function MolstarViewer({ uploadedFile, handleSaveButton }) {
 
   const resetSession = async () => {
     localStorage.removeItem("molx_session");
+    lastSavedSnapshotRef.current = null;
+    setSaveEnabled(false);
     setResetEnabled(false);
     toast.success("View reset successfully.");
   };
